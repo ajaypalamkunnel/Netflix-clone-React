@@ -3,6 +3,11 @@ import './Login.css'
 import logo from '../../assets/logo.png'
 import { login,signup } from '../../firebase'
 import netfilx_spinner from '../../assets/netflix_spinner.gif'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
+
 const Login = () => {
   const [signState,setSignState] = useState("Sign In")
 
@@ -11,15 +16,66 @@ const Login = () => {
   const [password,setPassword] = useState("");
   const [loading,setLoading] = useState(false)
 
+
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const isValidPassword = (password) => {
+    return password.length >= 6;
+  };
+
+  const isValidUsername = (name) => {
+    const usernameRegex = /^[A-Za-z_]+$/; 
+    return usernameRegex.test(name);
+  };
+
+
   const user_auth = async (event)=>{
     event.preventDefault()
-    setLoading(true)
-    if(signState==='Sign In'){
-      await login(email,password)
-    }else{
-      await signup(name,email,password)
+
+    if(signState === "Sign Up" ){
+      if (!name.trim()) {
+        toast.error("Name is required for signing up!");
+        return;
+      }
+      if (!isValidUsername(name)) {
+        toast.error("Username can only contain alphabets and underscores!");
+        return;
+      }
     }
-    setLoading(false)
+
+    if (!isValidEmail(email)) {
+      toast.error("Please enter a valid email!");
+      return;
+    }
+
+    if (!isValidPassword(password)) {
+      toast.error("Password must be at least 6 characters long!");
+      return;
+    }
+
+
+
+    setLoading(true)
+    try {
+
+      if(signState==='Sign In'){
+        await login(email,password)
+        toast.success("Successfully signed in!");
+      }else{
+        await signup(name,email,password)
+        toast.success("Account created successfully!");
+      }
+      
+    } catch (error) {
+      toast.error(error.message || "Authentication failed. Please try again.");
+    }finally{
+      setLoading(false)
+
+    }
+    
   }
 
 
@@ -57,6 +113,7 @@ const Login = () => {
         </div>
 
       </div>
+      <ToastContainer />
     </div>
   )
 }
